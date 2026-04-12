@@ -9,12 +9,12 @@ class DreamSerializer(serializers.ModelSerializer):
         model = Dream
         fields = [
             'id', 'user', 'title', 'description', 'mood',
-            'characters', 'scenarios', 'emotions', 'objects',
+            'characters', 'scenarios', 'emotions', 'dream_objects',  # <-- atualizado
             'ai_summary', 'generated_images',
             'dreamed_at', 'created_at', 'updated_at',
         ]
         read_only_fields = [
-            'characters', 'scenarios', 'emotions', 'objects',
+            'characters', 'scenarios', 'emotions', 'dream_objects',  # <-- atualizado
             'ai_summary', 'generated_images',
             'created_at', 'updated_at',
         ]
