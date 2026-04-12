@@ -1,0 +1,32 @@
+{% extends 'web/base.html' %}
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-2xl font-bold">Meus Sonhos</h1>
+    <a href="{% url 'dream_create' %}" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition">+ Registrar Sonho</a>
+</div>
+
+{% if dreams %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for dream in dreams %}
+    <a href="{% url 'dream_detail' dream.pk %}" class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-purple-500 transition">
+        {% if dream.generated_images %}
+        <img src="{{ dream.generated_images.0 }}" class="w-full h-48 object-cover" alt="Imagem do sonho">
+        {% else %}
+        <div class="w-full h-48 bg-gray-800 flex items-center justify-center text-4xl">🌙</div>
+        {% endif %}
+        <div class="p-4">
+            <h2 class="font-semibold text-lg">{{ dream.title|default:"Sem título" }}</h2>
+            <p class="text-gray-400 text-sm mt-1">{{ dream.dreamed_at }}</p>
+            <p class="text-gray-300 text-sm mt-2 line-clamp-2">{{ dream.description }}</p>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-24 text-gray-500">
+    <p class="text-5xl mb-4">🌙</p>
+    <p class="text-lg">Nenhum sonho registrado ainda.</p>
+    <a href="{% url 'dream_create' %}" class="mt-4 inline-block bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg transition">Registrar primeiro sonho</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'web/base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6">🌙 Registrar Sonho</h1>
+
+    <form method="post" class="bg-gray-900 p-6 rounded-xl border border-gray-800 space-y-4">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm text-gray-400 mb-1">Data do sonho</label>
+            <input name="dreamed_at" type="date" value="{{ today }}" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500">
+        </div>
+        <div>
+            <label class="block text-sm text-gray-400 mb-1">Como você se sentiu?</label>
+            <select name="mood" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500">
+                {% for value, label in moods %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm text-gray-400 mb-1">Descreva seu sonho</label>
+            <textarea name="description" rows="6" placeholder="O que aconteceu no seu sonho? Descreva com detalhes..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500 resize-none"></textarea>
+        </div>
+        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 py-3 rounded-lg font-medium transition">
+            ✨ Registrar e Gerar Imagem
+        </button>
+    </form>
+    <p class="text-gray-500 text-sm text-center mt-4">A IA irá analisar seu sonho e gerar uma imagem automaticamente.</p>
+</div>
+{% endblock %}

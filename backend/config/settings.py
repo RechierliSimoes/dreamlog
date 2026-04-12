@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'core',
     'ai',
     'api',
+    'crispy_forms',
+    'web',
 ]
 
 MIDDLEWARE = [
@@ -128,3 +130,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 GROQ_API_KEY = env('GROQ_API_KEY', default='')
 
 HUGGINGFACE_API_KEY = env('HUGGINGFACE_API_KEY', default='')
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'
