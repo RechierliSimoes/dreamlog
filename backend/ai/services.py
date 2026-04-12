@@ -1,6 +1,10 @@
 import json
 from groq import Groq
 from django.conf import settings
+import requests
+import base64
+import io
+from huggingface_hub import InferenceClient
 
 
 client = Groq(api_key=settings.GROQ_API_KEY)
@@ -41,3 +45,36 @@ Responda APENAS com um JSON válido, sem explicações, sem blocos markdown, no 
             raw = raw[4:]
 
     return json.loads(raw)
+
+def generate_dream_image(dream_data: dict) -> str | None:
+    """
+    Recebe os elementos do sonho e retorna a imagem em base64.
+    """
+    characters = ', '.join(dream_data.get('characters', []))
+    scenarios = ', '.join(dream_data.get('scenarios', []))
+    objects = ', '.join(dream_data.get('dream_objects', []))
+    emotions = ', '.join(dream_data.get('emotions', []))
+
+    prompt = (
+        f"A vivid dream scene: {scenarios}. "
+        f"Characters: {characters}. "
+        f"Objects: {objects}. "
+        f"Mood: {emotions}. "
+        f"Dreamlike, surreal, cinematic lighting, highly detailed, fantasy art."
+    )
+
+    client = InferenceClient(
+        provider="auto",
+        api_key=settings.HUGGINGFACE_API_KEY,
+    )
+
+    image = client.text_to_image(
+        prompt=prompt,
+        model="black-forest-labs/FLUX.1-schnell",
+    )
+
+    # image é um objeto PIL.Image — convertemos para base64
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG")
+    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    return f"data:image/jpeg;base64,{image_base64}"

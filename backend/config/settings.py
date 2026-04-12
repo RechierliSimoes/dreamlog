@@ -126,3 +126,5 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 GROQ_API_KEY = env('GROQ_API_KEY', default='')
+
+HUGGINGFACE_API_KEY = env('HUGGINGFACE_API_KEY', default='')
