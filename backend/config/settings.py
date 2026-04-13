@@ -134,3 +134,12 @@ HUGGINGFACE_API_KEY = env('HUGGINGFACE_API_KEY', default='')
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
+
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+INSTALLED_APPS += ['django_celery_results']

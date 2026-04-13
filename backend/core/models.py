@@ -12,6 +12,14 @@ class Dream(models.Model):
         ('neutral', 'Neutro'),
     ]
 
+    STATUS_CHOICES = [
+        ('processing', 'Processando'),
+        ('done', 'Concluído'),
+        ('error', 'Erro'),
+    ]
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='processing')
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='dreams')
     title = models.CharField(max_length=200, blank=True)
     description = models.TextField()

@@ -1,4 +1,26 @@
 {% extends 'web/base.html' %}
+{% if dream.status == 'processing' %}
+<div id="processing-banner" class="bg-purple-900 border border-purple-700 rounded-xl p-4 mb-6 flex items-center gap-3">
+    <div class="animate-spin text-2xl">🌀</div>
+    <div>
+        <p class="font-semibold text-purple-200">A IA está processando seu sonho...</p>
+        <p class="text-purple-400 text-sm">A imagem e análise aparecerão em alguns instantes.</p>
+    </div>
+</div>
+
+<script>
+    // Polling: verifica a cada 5 segundos se o sonho foi processado
+    const checkStatus = async () => {
+        const res = await fetch('/api/dreams/{{ dream.pk }}/status/');
+        const data = await res.json();
+        if (data.status === 'done' || data.status === 'error') {
+            window.location.reload();
+        }
+    };
+    const interval = setInterval(checkStatus, 5000);
+</script>
+{% endif %}
+
 {% block content %}
 <div class="max-w-2xl mx-auto">
     <a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-white text-sm mb-6 inline-block">← Voltar</a>

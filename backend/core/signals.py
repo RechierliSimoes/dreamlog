@@ -2,6 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Dream
 from ai.services import extract_dream_elements, generate_dream_image
+from ai.tasks import analyze_dream_task
 
 
 @receiver(post_save, sender=Dream)
@@ -9,6 +10,7 @@ def analyze_dream_on_create(sender, instance, created, **kwargs):
     if not created:
         return
 
+    analyze_dream_task.delay(instance.pk)
     print(f"[SIGNAL] Analisando sonho {instance.pk}...")
 
     try:
