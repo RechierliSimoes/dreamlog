@@ -5,6 +5,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -22,3 +24,14 @@ class DreamViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+@api_view(['POST'])
+@permission_classes([])  # público
+def login_view(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    user = authenticate(username=username, password=password)
+    if user:
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key, 'username': user.username})
+    return Response({'error': 'Credenciais inválidas'}, status=400)
