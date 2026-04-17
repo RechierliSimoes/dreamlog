@@ -6,6 +6,7 @@ import {
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import api from '../../services/api';
+import { requestNotificationPermission, scheduleMorningReminder } from '../../services/notifications';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -17,10 +18,27 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const res = await api.post('/api/auth/login/', { username, password });
+      
+      // 1. Salva os dados de autenticação primeiro
       await SecureStore.setItemAsync('auth_token', res.data.token);
       await SecureStore.setItemAsync('username', res.data.username);
+
+      // 2. Tenta configurar as notificações (insira aqui)
+      try {
+        const granted = await requestNotificationPermission();
+        if (granted) {
+          await scheduleMorningReminder(8, 0); // Agenda para 8h da manhã
+        }
+      } catch (notifError) {
+        // Se a notificação falhar, o login ainda deve continuar
+        console.log('Erro ao configurar notificações:', notifError);
+      }
+
+      // 3. Só então redireciona para dentro do app
       router.replace('/(tabs)');
-    } catch {
+      
+    } catch (e) {
+      console.error(e); // Ajuda você a ver o erro real no console
       Alert.alert('Erro', 'Usuário ou senha incorretos.');
     } finally {
       setLoading(false);

@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert, ScrollView
 } from 'react-native';
 import { router } from 'expo-router';
+import { Audio } from 'expo-av';
+import * as FileSystem from 'expo-file-system';
 import api from '../../services/api';
 
 const MOODS = [
@@ -19,6 +21,65 @@ export default function NewDreamScreen() {
   const [description, setDescription] = useState('');
   const [mood, setMood] = useState('neutral');
   const [loading, setLoading] = useState(false);
+  const [recording, setRecording] = useState(null);
+  const [transcribing, setTranscribing] = useState(false);
+  const recordingRef = useRef(null);
+
+  const startRecording = async () => {
+    try {
+      const { granted } = await Audio.requestPermissionsAsync();
+      if (!granted) {
+        Alert.alert('Permissão negada', 'Precisamos de acesso ao microfone.');
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+
+      recordingRef.current = recording;
+      setRecording(recording);
+    } catch (e) {
+      Alert.alert('Erro', 'Não foi possível iniciar a gravação.');
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!recordingRef.current) return;
+
+    setTranscribing(true);
+    try {
+      await recordingRef.current.stopAndUnloadAsync();
+      const uri = recordingRef.current.getURI();
+      setRecording(null);
+      recordingRef.current = null;
+
+      // Envia o áudio para o backend transcrever
+      const formData = new FormData();
+      formData.append('audio', {
+        uri,
+        name: 'dream.m4a',
+        type: 'audio/m4a',
+      });
+
+      const res = await api.post('/api/dreams/transcribe/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      setDescription(prev =>
+        prev ? prev + ' ' + res.data.transcription : res.data.transcription
+      );
+    } catch (e) {
+      Alert.alert('Erro', 'Não foi possível transcrever o áudio.');
+    } finally {
+      setTranscribing(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!description.trim()) {
@@ -57,9 +118,26 @@ export default function NewDreamScreen() {
       </View>
 
       <Text style={styles.label}>Descreva seu sonho</Text>
+
+      {/* Botão de gravação */}
+      <TouchableOpacity
+        style={[styles.voiceBtn, recording && styles.voiceBtnRecording]}
+        onPress={recording ? stopRecording : startRecording}
+        disabled={transcribing}
+      >
+        {transcribing
+          ? <ActivityIndicator color="#fff" />
+          : <Text style={styles.voiceBtnText}>
+              {recording ? '⏹ Parar gravação' : '🎙 Gravar por voz'}
+            </Text>
+        }
+      </TouchableOpacity>
+      {recording && <Text style={styles.recordingHint}>Gravando... toque para parar e transcrever.</Text>}
+      {transcribing && <Text style={styles.recordingHint}>Transcrevendo áudio...</Text>}
+
       <TextInput
         style={styles.textarea}
-        placeholder="O que aconteceu? Descreva com detalhes..."
+        placeholder="Ou escreva aqui... (a transcrição aparece automaticamente)"
         placeholderTextColor="#666"
         value={description}
         onChangeText={setDescription}
@@ -88,6 +166,10 @@ const styles = StyleSheet.create({
   moodBtnActive: { borderColor: '#a855f7', backgroundColor: '#3b0764' },
   moodText: { color: '#71717a', fontSize: 13 },
   moodTextActive: { color: '#e9d5ff' },
+  voiceBtn: { backgroundColor: '#18181b', borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#27272a', marginBottom: 8 },
+  voiceBtnRecording: { borderColor: '#ef4444', backgroundColor: '#450a0a' },
+  voiceBtnText: { color: '#a855f7', fontWeight: '600', fontSize: 15 },
+  recordingHint: { color: '#71717a', fontSize: 12, textAlign: 'center', marginBottom: 8 },
   textarea: { backgroundColor: '#18181b', color: '#fff', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#27272a', fontSize: 15, minHeight: 160 },
   button: { backgroundColor: '#9333ea', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
   buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
