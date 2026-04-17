@@ -46,6 +46,7 @@ Responda APENAS com um JSON válido, sem explicações, sem blocos markdown, no 
 
     return json.loads(raw)
 
+
 def generate_dream_image(dream_data: dict) -> str | None:
     """
     Recebe os elementos do sonho e retorna a imagem em base64.
@@ -78,3 +79,16 @@ def generate_dream_image(dream_data: dict) -> str | None:
     image.save(buffer, format="JPEG")
     image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return f"data:image/jpeg;base64,{image_base64}"
+
+
+def transcribe_audio(audio_file) -> str:
+    """
+    Recebe um arquivo de áudio e retorna a transcrição em texto.
+    """
+    transcription = client.audio.transcriptions.create(
+        file=audio_file,
+        model="whisper-large-v3",
+        language="pt",
+        response_format="text",
+    )
+    return transcription
